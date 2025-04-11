@@ -1,8 +1,8 @@
 const express = require("express")
-const users = express.Router()
+const clientes = express.Router()
 const connection = require("../config/db");
 
-users.get("/", async (req, res) => {
+clientes.get("/client/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Cliente");
         res.status(200).json(results);
@@ -12,13 +12,13 @@ users.get("/", async (req, res) => {
     }
 });
 
-users.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+clientes.post("/client/login", async (req, res) => {
+    const { email } = req.body;
     try {
-        const [users, fields] = await connection.query("SELECT * FROM usuario");
-        const validation = users.filter(user => user.username === username && user.password === password);
+        const [clientes, fields] = await connection.query("SELECT * FROM Cliente");
+        const validation = clientes.filter(user => user.email === email);
         if (validation.length === 0)
-            res.status(401).json({ message: "Usuario o contraseña invalida" })
+            res.status(401).json({ message: "Email no registrado" })
         else
             res.status(200).json({ message: "Login correcto" });
     } catch (error) {
@@ -27,31 +27,31 @@ users.post("/login", async (req, res) => {
     }
 });
 
-users.post("/register", async (req, res) => {
-    const { username, password } = req.body;
+clientes.post("/client/register", async (req, res) => {
+    const { nombre, email } = req.body;
     try {
-        const [existingUsers, fields] = await connection.query("SELECT * FROM usuario WHERE username = ?", [username]);
-        if (existingUsers.length > 0)
-            return res.status(409).json({ message: "El nombre de usuario ya existe" });
-        await connection.query("INSERT INTO usuario (username, password) VALUES (?, ?)", [username, password]);
-        res.status(201).json({ message: "Usuario registrado correctamente" });
+        const [existingclientes, fields] = await connection.query("SELECT * FROM Cliente WHERE email = ?", [email]);
+        if (existingclientes.length > 0)
+            return res.status(409).json({ message: "Email ya registrado" });
+        await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?)", [id, nombre, email]);
+        res.status(201).json({ message: "Cliente registrado correctamente" });
     } catch (error) {
         console.error("Error en registro:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
 
-users.delete("/:id", async (req, res) => {
+clientes.delete("/client/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await connection.query("DELETE FROM usuario WHERE id = ?", [id]);
+        const [result] = await connection.query("DELETE FROM Cliente WHERE id = ?", [id]);
         if (result.affectedRows === 0) 
-            return res.status(404).json({ message: "Usuario no encontrado" });
-        res.status(200).json({ message: "Usuario eliminado correctamente" });
+            return res.status(404).json({ message: "Cliente no encontrado" });
+        res.status(200).json({ message: "Cliente eliminado correctamente" });
     } catch (error) {
         console.error("Error al eliminar usuario:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
 
-module.exports = users;
+module.exports = clientes;
