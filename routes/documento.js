@@ -23,7 +23,7 @@ documentos.post("/register", async (req, res) => {
 
     try {
         // Simulacion del guardado de la evidencia
-        const evidencia = `https://file_server/${hash_nombre}.txt`;
+        evidencia = `https://file_server/${hash_nombre}.txt`;
 
         await connection.query(
             "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, evidencia, creado) VALUES (?, ?, ?, ?, ?)",
