@@ -6,4 +6,4 @@ Una vez configurada la base de datos, se deben instalar las dependencias del pro
 
 `npm install`
 
-`npm start`
+`npm test`
