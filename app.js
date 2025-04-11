@@ -5,11 +5,11 @@ require("dotenv").config();
 
 const PORT = process.env.port || 3000;
 
-const users = require("./routes/user");
+const cliente = require("./routes/cliente");
 
 app.use(cors());
 app.use(express.json());
-app.use("/users", users);
+app.use("/clientes", cliente);
 
 app.listen(PORT, () => {
     console.log("Server Listening in", PORT);  
