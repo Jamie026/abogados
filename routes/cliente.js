@@ -5,7 +5,7 @@ const connection = require("../config/db");
 const { compare, encriptar } = require("./../auth/bcrypt")
 
 //Get all clients
-clientes.get("/client/", async (req, res) => {
+clientes.get("/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Cliente");
         res.status(200).json(results);
@@ -16,7 +16,7 @@ clientes.get("/client/", async (req, res) => {
 });
 
 //Login client
-clientes.post("/client/login", async (req, res) => {
+clientes.post("/login", async (req, res) => {
     const { email } = req.body;
     try {
         const [clientes, fields] = await connection.query("SELECT * FROM Cliente");
@@ -32,15 +32,16 @@ clientes.post("/client/login", async (req, res) => {
 });
 
 //Register client
-clientes.post("/client/register", async (req, res) => {
+clientes.post("/register", async (req, res) => {
     const { nombre, email } = req.body;
-    const id = encriptar(uuidv4());
+    const no_hash_id = uuidv4();
+    const id = encriptar(no_hash_id);
     try {
         const [existingclientes, fields] = await connection.query("SELECT * FROM Cliente WHERE email = ?", [email]);
         if (existingclientes.length > 0)
             return res.status(409).json({ message: "Email ya registrado" });
         await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
-        res.status(201).json({ message: "Cliente registrado correctamente" });
+        res.status(201).json({ message: "Cliente registrado correctamente. Guarde su ID para futuras operaciónes.", ID: no_hash_id });
     } catch (error) {
         console.error("Error en registro:", error);
         res.status(500).json({ message: "Error en el servidor" });
@@ -48,15 +49,21 @@ clientes.post("/client/register", async (req, res) => {
 });
 
 //Delete client by ID
-clientes.delete("/client/:id", async (req, res) => {
+clientes.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await connection.query("DELETE FROM Cliente WHERE id = ?", [id]);
-        if (result.affectedRows === 0) 
-            return res.status(404).json({ message: "Cliente no encontrado" });
-        res.status(200).json({ message: "Cliente eliminado correctamente" });
+        const [clientes, fields] = await connection.query("SELECT * FROM Cliente");
+        const user = clientes.filter(user => compare(id, user.id));
+        if (user.length === 0)
+            res.status(401).json({ message: "ID no registrado" })
+        else{
+            const [result] = await connection.query("DELETE FROM Cliente WHERE id = ?", [user[0].id]);
+            if (result.affectedRows === 0) 
+                return res.status(404).json({ message: "Cliente no encontrado" });
+            res.status(200).json({ message: "Cliente eliminado correctamente" });
+        }
     } catch (error) {
-        console.error("Error al eliminar usuario:", error);
+        console.error("Error al eliminar cliente:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
