@@ -15,7 +15,8 @@ casos.get("/casos", async (req, res) => {
 
 // REGISTRAR UN CASO COMO ABOGADO
 casos.post("/casos/register", async (req, res) => {
-    const { id, nombre, resumen, abogado_id, cliente_id } = req.body;
+    const { nombre, resumen, abogado_id, cliente_id } = req.body;
+    const id = encriptar(uuidv4());
     try {
         const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
         if (existingCaso.length > 0)
@@ -27,7 +28,25 @@ casos.post("/casos/register", async (req, res) => {
         );
         res.status(201).json({ message: "Caso registrado correctamente" });
     } catch (error) {
-        console.error("Error en registro:", error);
+        res.status(500).json({ message: "Error en el servidor" });
+    }
+});
+
+// MODIFICACION DE LOS CASOS
+casos.put("/casos/:id", async (req, res) => {
+    const { id } = req.params;
+    const { nombre, resumen, abogado_id, cliente_id } = req.body;
+    try {
+        const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
+        if (existingCaso.length === 0)
+            return res.status(404).json({ message: "Caso no encontrado" });
+
+        await connection.query(
+            "UPDATE Caso SET nombre = ?, resumen = ?, abogado_id = ?, cliente_id = ? WHERE id = ?",
+            [nombre, resumen, abogado_id, cliente_id, id]
+        );
+        res.status(200).json({ message: "Caso actualizado correctamente" });
+    } catch (error) {
         res.status(500).json({ message: "Error en el servidor" });
     }
 });

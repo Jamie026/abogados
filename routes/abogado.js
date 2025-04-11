@@ -2,7 +2,7 @@ const express = require("express")
 const abogados = express.Router()
 const connection = require("../config/db");
 
-abogados.get("/abogados/", async (req, res) => {
+abogados.get("/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Abogado");
         res.status(200).json(results);
@@ -12,7 +12,7 @@ abogados.get("/abogados/", async (req, res) => {
     }
 });
 
-abogados.post("/abogados/login", async (req, res) => {
+abogados.post("/login", async (req, res) => {
     const { email } = req.body;
     try {
         const [abogados, fields] = await connection.query("SELECT * FROM Abogado");
@@ -27,14 +27,15 @@ abogados.post("/abogados/login", async (req, res) => {
     }
 });
 
-abogados.post("/abogados/register", async (req, res) => {
+clientes.post("/register", async (req, res) => {
     const { nombre, email } = req.body;
+    const id = encriptar(uuidv4());
     try {
-        const [existingabogados, fields] = await connection.query("SELECT * FROM Abogado WHERE email = ?", [email]);
+        const [existingabogados, fields] = await connection.query("SELECT * FROM Cliente WHERE email = ?", [email]);
         if (existingabogados.length > 0)
             return res.status(409).json({ message: "Email ya registrado" });
-        await connection.query("INSERT INTO Abogado (id, nombre, email) VALUES (?, ?)", [id, nombre, email]);
-        res.status(201).json({ message: "Abogado registrado correctamente" });
+        await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
+        res.status(201).json({ message: "Cliente registrado correctamente" });
     } catch (error) {
         console.error("Error en registro:", error);
         res.status(500).json({ message: "Error en el servidor" });
@@ -42,7 +43,7 @@ abogados.post("/abogados/register", async (req, res) => {
 });
 
 
-abogados.delete("/abogados/:id", async (req, res) => {
+abogados.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
         const [result] = await connection.query("DELETE FROM Abogado WHERE id = ?", [id]);
