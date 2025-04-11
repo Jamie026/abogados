@@ -1,6 +1,7 @@
 const express = require("express")
 const casos = express.Router()
 const connection = require("../config/db");
+const { encriptar } = require("../auth/bcrypt");
 
 casos.get("/casos", async (req, res) => {
     try {
@@ -12,16 +13,12 @@ casos.get("/casos", async (req, res) => {
     }
 });
 
-
 // REGISTRAR UN CASO COMO ABOGADO
 casos.post("/casos/register", async (req, res) => {
-    const { nombre, resumen, abogado_id, cliente_id } = req.body;
-    const id = encriptar(uuidv4());
+    let { nombre, resumen, abogado_id, cliente_id } = req.body;
+    const id = uuidv4();
+    nombre = encriptar(nombre);
     try {
-        const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
-        if (existingCaso.length > 0)
-            return res.status(409).json({ message: "Caso con este ID ya registrado" });
-
         await connection.query(
             "INSERT INTO Caso (id, nombre, resumen, abogado_id, cliente_id) VALUES (?, ?, ?, ?, ?)",
             [id, nombre, resumen, abogado_id, cliente_id]
@@ -35,22 +32,20 @@ casos.post("/casos/register", async (req, res) => {
 // MODIFICACION DE LOS CASOS
 casos.put("/casos/:id", async (req, res) => {
     const { id } = req.params;
-    const { nombre, resumen, abogado_id, cliente_id } = req.body;
+    const { nombre, resumen } = req.body;
     try {
         const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
         if (existingCaso.length === 0)
             return res.status(404).json({ message: "Caso no encontrado" });
-
         await connection.query(
-            "UPDATE Caso SET nombre = ?, resumen = ?, abogado_id = ?, cliente_id = ? WHERE id = ?",
-            [nombre, resumen, abogado_id, cliente_id, id]
+            "UPDATE Caso SET nombre = ?, resumen = ? WHERE id = ?",
+            [nombre, resumen, id]
         );
         res.status(200).json({ message: "Caso actualizado correctamente" });
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
-
 
 casos.delete("/casos/:id", async (req, res) => {
     const { id } = req.params;
@@ -60,7 +55,7 @@ casos.delete("/casos/:id", async (req, res) => {
             return res.status(404).json({ message: "Caso no encontrado" });
         res.status(200).json({ message: "Caso eliminado correctamente" });
     } catch (error) {
-        console.error("Error al eliminar usuario:", error);
+        console.error("Error al eliminar caso:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
