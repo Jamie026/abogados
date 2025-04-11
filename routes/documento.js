@@ -1,6 +1,8 @@
 const express = require("express")
 const documentos = express.Router()
 const connection = require("../config/db");
+const fs = require("fs");
+const path = require("path");
 
 documentos.get("", async (req, res) => {
     try {
@@ -15,14 +17,17 @@ documentos.get("", async (req, res) => {
 
 // REGISTRAR UN CASO COMO ABOGADO
 documentos.post("/register", async (req, res) => {
-    const { original_nombre, caso_id } = req.body;
+    const { original_nombre, caso_id, evidencia } = req.body;
     const hash_nombre = encriptar(original_nombre);
     const creado = new Date();
 
     try {
+        // Simulacion del guardado de la evidencia
+        const evidencia = `https://file_server/${hash_nombre}.txt`;
+
         await connection.query(
-            "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, creado) VALUES (?, ?, ?, ?)",
-            [hash_nombre, original_nombre, caso_id, creado]
+            "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, evidencia, creado) VALUES (?, ?, ?, ?, ?)",
+            [hash_nombre, original_nombre, caso_id, evidencia, creado]
         );
         res.status(201).json({ message: "Documento registrado correctamente" });
     } catch (error) {
@@ -34,19 +39,23 @@ documentos.post("/register", async (req, res) => {
 // MODIFICACION DE LOS CASOS
 documentos.put("/:id", async (req, res) => {
     const { id } = req.params;
-    const { evidencia } = req.body;
+
     try {
         const [existingDocumento] = await connection.query("SELECT * FROM Documento WHERE id = ?", [id]);
         if (existingDocumento.length === 0)
             return res.status(404).json({ message: "Documento no encontrado" });
 
+        // Simulacion del guardado de la nueva evidencia
+        const hash_nombre = existingDocumento[0].hash_nombre;
+        const nuevaEvidencia = `https://nuevo_file_server/${hash_nombre}.txt`;
+
         await connection.query(
             "UPDATE Documento SET evidencia = ? WHERE id = ?",
-            [evidencia]
+            [nuevaEvidencia, id]
         );
-        res.status(200).json({ message: "Documento actualizado correctamente" });
+        res.status(200).json({ message: "Evidencia actualizada correctamente" });
     } catch (error) {
-        console.error("Error al actualizar documento:", error);
+        console.error("Error al actualizar evidencia:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });

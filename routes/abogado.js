@@ -27,7 +27,7 @@ abogados.post("/login", async (req, res) => {
     }
 });
 
-clientes.post("/register", async (req, res) => {
+abogados.post("/register", async (req, res) => {
     const { nombre, email } = req.body;
     const id = encriptar(uuidv4());
     try {
@@ -43,11 +43,11 @@ clientes.post("/register", async (req, res) => {
 });
 
 
-clientes.delete("/:id", async (req, res) => {
+abogados.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const [clientes, fields] = await connection.query("SELECT * FROM Abogado ");
-        const user = clientes.filter(user => compare(id, user.id));
+        const [abogados, fields] = await connection.query("SELECT * FROM Abogado ");
+        const user = abogados.filter(user => compare(id, user.id));
         if (user.length === 0)
             res.status(401).json({ message: "ID no registrado" })
         else {
