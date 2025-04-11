@@ -2,9 +2,9 @@ const express = require("express")
 const documentos = express.Router()
 const connection = require("../config/db");
 
-documentos.get("/documentos", async (req, res) => {
+documentos.get("", async (req, res) => {
     try {
-        const [results] = await connection.query("SELECT * FROM Caso");
+        const [results] = await connection.query("SELECT * FROM Documento");
         res.status(200).json(results);
     } catch (error) {
         console.error("Error al obtener documentos:", error);
@@ -14,51 +14,50 @@ documentos.get("/documentos", async (req, res) => {
 
 
 // REGISTRAR UN CASO COMO ABOGADO
-documentos.post("/documentos/register", async (req, res) => {
-    const { nombre, resumen, abogado_id, cliente_id } = req.body;
-    const id = encriptar(uuidv4());
+documentos.post("/register", async (req, res) => {
+    const { original_nombre, caso_id } = req.body;
+    const hash_nombre = encriptar(original_nombre);
+    const creado = new Date();
+    
     try {
-        const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
-        if (existingCaso.length > 0)
-            return res.status(409).json({ message: "Caso con este ID ya registrado" });
-
         await connection.query(
-            "INSERT INTO Caso (id, nombre, resumen, abogado_id, cliente_id) VALUES (?, ?, ?, ?, ?)",
-            [id, nombre, resumen, abogado_id, cliente_id]
+            "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, creado) VALUES (?, ?, ?, ?)",
+            [hash_nombre, original_nombre, caso_id, creado]
         );
-        res.status(201).json({ message: "Caso registrado correctamente" });
+        res.status(201).json({ message: "Documento registrado correctamente" });
     } catch (error) {
+        console.error("Error al registrar documento:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
 
 // MODIFICACION DE LOS CASOS
-documentos.put("/documentos/:id", async (req, res) => {
+documentos.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { nombre, resumen, abogado_id, cliente_id } = req.body;
     try {
-        const [existingCaso] = await connection.query("SELECT * FROM Caso WHERE id = ?", [id]);
-        if (existingCaso.length === 0)
-            return res.status(404).json({ message: "Caso no encontrado" });
+        const [existingDocumento] = await connection.query("SELECT * FROM Documento WHERE id = ?", [id]);
+        if (existingDocumento.length === 0)
+            return res.status(404).json({ message: "Documento no encontrado" });
 
         await connection.query(
-            "UPDATE Caso SET nombre = ?, resumen = ?, abogado_id = ?, cliente_id = ? WHERE id = ?",
+            "UPDATE Documento SET nombre = ?, resumen = ?, abogado_id = ?, cliente_id = ? WHERE id = ?",
             [nombre, resumen, abogado_id, cliente_id, id]
         );
-        res.status(200).json({ message: "Caso actualizado correctamente" });
+        res.status(200).json({ message: "Documento actualizado correctamente" });
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
 
 
-documentos.delete("/documentos/:id", async (req, res) => {
+documentos.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await connection.query("DELETE FROM Caso WHERE id = ?", [id]);
+        const [result] = await connection.query("DELETE FROM Documento WHERE id = ?", [id]);
         if (result.affectedRows === 0)
-            return res.status(404).json({ message: "Caso no encontrado" });
-        res.status(200).json({ message: "Caso eliminado correctamente" });
+            return res.status(404).json({ message: "Documento no encontrado" });
+        res.status(200).json({ message: "Documento eliminado correctamente" });
     } catch (error) {
         console.error("Error al eliminar usuario:", error);
         res.status(500).json({ message: "Error en el servidor" });
