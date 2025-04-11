@@ -1,10 +1,10 @@
 const express = require("express")
 const documentos = express.Router()
 const connection = require("../config/db");
-const fs = require("fs");
-const path = require("path");
+const { v4: uuidv4 } = require('uuid');
+const { encriptar } = require("./../auth/bcrypt")
 
-documentos.get("", async (req, res) => {
+documentos.get("/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Documento");
         res.status(200).json(results);
@@ -14,20 +14,22 @@ documentos.get("", async (req, res) => {
     }
 });
 
-
 // REGISTRAR UN CASO COMO ABOGADO
 documentos.post("/register", async (req, res) => {
-    const { original_nombre, caso_id, evidencia } = req.body;
+    let { original_nombre, caso_id, evidencia } = req.body;
+    const id = uuidv4();
     const hash_nombre = encriptar(original_nombre);
     const creado = new Date();
-
     try {
+        const [casos] = await connection.query("SELECT * FROM Caso WHERE id = ?", [caso_id]);
+        if (casos.length === 0) {
+            return res.status(400).json({ message: "El caso asociado no existe" });
+        }
         // Simulacion del guardado de la evidencia
-        evidencia = `https://file_server/${hash_nombre}.txt`;
-
+        evidencia = "https://file_server/" + hash_nombre + ".txt";
         await connection.query(
-            "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, evidencia, creado) VALUES (?, ?, ?, ?, ?)",
-            [hash_nombre, original_nombre, caso_id, evidencia, creado]
+            "INSERT INTO Documento (id, hash_nombre, original_nombre, caso_id, evidencia, creado) VALUES (?, ?, ?, ?, ?, ?)",
+            [id, hash_nombre, original_nombre, caso_id, evidencia, creado]
         );
         res.status(201).json({ message: "Documento registrado correctamente" });
     } catch (error) {
@@ -39,7 +41,6 @@ documentos.post("/register", async (req, res) => {
 // MODIFICACION DE LOS CASOS
 documentos.put("/:id", async (req, res) => {
     const { id } = req.params;
-
     try {
         const [existingDocumento] = await connection.query("SELECT * FROM Documento WHERE id = ?", [id]);
         if (existingDocumento.length === 0)
@@ -47,7 +48,7 @@ documentos.put("/:id", async (req, res) => {
 
         // Simulacion del guardado de la nueva evidencia
         const hash_nombre = existingDocumento[0].hash_nombre;
-        const nuevaEvidencia = `https://nuevo_file_server/${hash_nombre}.txt`;
+        const nuevaEvidencia = "https://nuevo_file_server/" + hash_nombre + ".txt";
 
         await connection.query(
             "UPDATE Documento SET evidencia = ? WHERE id = ?",

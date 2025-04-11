@@ -1,10 +1,9 @@
 const express = require("express")
 const pagos = express.Router()
 const connection = require("../config/db");
-const fs = require("fs");
-const path = require("path");
+const { v4: uuidv4 } = require('uuid');
 
-pagos.get("", async (req, res) => {
+pagos.get("/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Pago");
         res.status(200).json(results);
@@ -18,11 +17,11 @@ pagos.get("", async (req, res) => {
 // REGISTRAR UN CASO COMO ABOGADO
 pagos.post("/register", async (req, res) => {
     const { metodo_pago, caso_id } = req.body;
-
+    const id = uuidv4();
     try {
         await connection.query(
-            "INSERT INTO Pago (metodo_pago, caso_id) VALUES (?, ?, ?)",
-            [metodo_pago, caso_id]
+            "INSERT INTO Pago (id, metodo_pago, caso_id) VALUES (?, ?, ?)",
+            [id, metodo_pago, caso_id]
         );
         res.status(201).json({ message: "Pago registrado correctamente" });
     } catch (error) {

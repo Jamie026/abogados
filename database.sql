@@ -1,3 +1,6 @@
+create database abogados;
+
+use abogados;
 
 CREATE TABLE Abogado (
     id VARCHAR(255) PRIMARY KEY, 
@@ -12,9 +15,9 @@ CREATE TABLE Cliente (
 );
 
 CREATE TABLE Caso (
-    id INT PRIMARY KEY, 
+    id VARCHAR(255) PRIMARY KEY, 
     nombre VARCHAR(150) NOT NULL,
-    resumem TEXT,
+    resumen TEXT,
     abogado_id VARCHAR(255),
     cliente_id VARCHAR(255) NOT NULL,
     creado DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -23,18 +26,18 @@ CREATE TABLE Caso (
 );
 
 CREATE TABLE Documento (
-    id INT PRIMARY KEY, 
+    id VARCHAR(255) PRIMARY KEY, 
     hash_nombre VARCHAR(255) NOT NULL,
     original_nombre VARCHAR(255) NOT NULL,
-    caso_id INT NOT NULL,
+    caso_id VARCHAR(255) NOT NULL,
     evidencia TEXT,
     creado DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (caso_id) REFERENCES Caso(id)
 );
 
 CREATE TABLE Pago (
-	id INT PRIMARY KEY, 
+	id VARCHAR(255) PRIMARY KEY,
     metodo_pago VARCHAR(255),
-    caso_id INT NOT NULL,
+    caso_id VARCHAR(255) NOT NULL,
     FOREIGN KEY (caso_id) REFERENCES Caso(id)
 );

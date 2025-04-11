@@ -6,9 +6,9 @@ require("dotenv").config();
 const PORT = process.env.port || 3000;
 
 const cliente = require("./routes/cliente");
-const abogados = require("./routes/abogados");
+const abogados = require("./routes/abogado");
 const casos = require("./routes/casos");
-const documentos = require("./routes/documentos");
+const documentos = require("./routes/documento");
 const pagos = require("./routes/pagos");
 
 app.use(cors());

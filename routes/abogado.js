@@ -1,6 +1,8 @@
 const express = require("express")
 const abogados = express.Router()
+const { v4: uuidv4 } = require('uuid');
 const connection = require("../config/db");
+const { compare, encriptar } = require("./../auth/bcrypt")
 
 abogados.get("/", async (req, res) => {
     try {
@@ -29,13 +31,14 @@ abogados.post("/login", async (req, res) => {
 
 abogados.post("/register", async (req, res) => {
     const { nombre, email } = req.body;
-    const id = encriptar(uuidv4());
+    const no_hash_id = uuidv4();
+    const id = encriptar(no_hash_id);
     try {
         const [existingabogados, fields] = await connection.query("SELECT * FROM Abogado  WHERE email = ?", [email]);
         if (existingabogados.length > 0)
             return res.status(409).json({ message: "Email ya registrado" });
         await connection.query("INSERT INTO Abogado  (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
-        res.status(201).json({ message: "Abogado  registrado correctamente" });
+        res.status(201).json({ message: "Abogado registrado correctamente. Guarde su ID para futuras operaciones.", ID: no_hash_id });
     } catch (error) {
         console.error("Error en registro:", error);
         res.status(500).json({ message: "Error en el servidor" });
