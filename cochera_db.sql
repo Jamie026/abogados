@@ -27,6 +27,7 @@ CREATE TABLE Documento (
     hash_nombre VARCHAR(255) NOT NULL,
     original_nombre VARCHAR(255) NOT NULL,
     caso_id INT NOT NULL,
+    evidencia TEXT,
     creado DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (caso_id) REFERENCES Caso(id)
 );

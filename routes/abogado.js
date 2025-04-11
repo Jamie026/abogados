@@ -31,11 +31,11 @@ clientes.post("/register", async (req, res) => {
     const { nombre, email } = req.body;
     const id = encriptar(uuidv4());
     try {
-        const [existingabogados, fields] = await connection.query("SELECT * FROM Cliente WHERE email = ?", [email]);
+        const [existingabogados, fields] = await connection.query("SELECT * FROM Abogado  WHERE email = ?", [email]);
         if (existingabogados.length > 0)
             return res.status(409).json({ message: "Email ya registrado" });
-        await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
-        res.status(201).json({ message: "Cliente registrado correctamente" });
+        await connection.query("INSERT INTO Abogado  (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
+        res.status(201).json({ message: "Abogado  registrado correctamente" });
     } catch (error) {
         console.error("Error en registro:", error);
         res.status(500).json({ message: "Error en el servidor" });
@@ -43,15 +43,21 @@ clientes.post("/register", async (req, res) => {
 });
 
 
-abogados.delete("/:id", async (req, res) => {
+clientes.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const [result] = await connection.query("DELETE FROM Abogado WHERE id = ?", [id]);
-        if (result.affectedRows === 0)
-            return res.status(404).json({ message: "Abogado no encontrado" });
-        res.status(200).json({ message: "Abogado eliminado correctamente" });
+        const [clientes, fields] = await connection.query("SELECT * FROM Abogado ");
+        const user = clientes.filter(user => compare(id, user.id));
+        if (user.length === 0)
+            res.status(401).json({ message: "ID no registrado" })
+        else {
+            const [result] = await connection.query("DELETE FROM Abogado  WHERE id = ?", [user[0].id]);
+            if (result.affectedRows === 0)
+                return res.status(404).json({ message: "Abogado  no encontrado" });
+            res.status(200).json({ message: "Abogado  eliminado correctamente" });
+        }
     } catch (error) {
-        console.error("Error al eliminar usuario:", error);
+        console.error("Error al eliminar cliente:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });

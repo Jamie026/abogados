@@ -18,7 +18,7 @@ documentos.post("/register", async (req, res) => {
     const { original_nombre, caso_id } = req.body;
     const hash_nombre = encriptar(original_nombre);
     const creado = new Date();
-    
+
     try {
         await connection.query(
             "INSERT INTO Documento (hash_nombre, original_nombre, caso_id, creado) VALUES (?, ?, ?, ?)",
@@ -34,18 +34,19 @@ documentos.post("/register", async (req, res) => {
 // MODIFICACION DE LOS CASOS
 documentos.put("/:id", async (req, res) => {
     const { id } = req.params;
-    const { nombre, resumen, abogado_id, cliente_id } = req.body;
+    const { evidencia } = req.body;
     try {
         const [existingDocumento] = await connection.query("SELECT * FROM Documento WHERE id = ?", [id]);
         if (existingDocumento.length === 0)
             return res.status(404).json({ message: "Documento no encontrado" });
 
         await connection.query(
-            "UPDATE Documento SET nombre = ?, resumen = ?, abogado_id = ?, cliente_id = ? WHERE id = ?",
-            [nombre, resumen, abogado_id, cliente_id, id]
+            "UPDATE Documento SET evidencia = ? WHERE id = ?",
+            [evidencia]
         );
         res.status(200).json({ message: "Documento actualizado correctamente" });
     } catch (error) {
+        console.error("Error al actualizar documento:", error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });
