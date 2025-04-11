@@ -1,7 +1,10 @@
 const express = require("express")
 const clientes = express.Router()
+const { v4: uuidv4 } = require('uuid');
 const connection = require("../config/db");
+const { compare, encriptar } = require("./../auth/bcrypt")
 
+//Get all clients
 clientes.get("/client/", async (req, res) => {
     try {
         const [results] = await connection.query("SELECT * FROM Cliente");
@@ -12,6 +15,7 @@ clientes.get("/client/", async (req, res) => {
     }
 });
 
+//Login client
 clientes.post("/client/login", async (req, res) => {
     const { email } = req.body;
     try {
@@ -27,13 +31,15 @@ clientes.post("/client/login", async (req, res) => {
     }
 });
 
+//Register client
 clientes.post("/client/register", async (req, res) => {
     const { nombre, email } = req.body;
+    const id = encriptar(uuidv4());
     try {
         const [existingclientes, fields] = await connection.query("SELECT * FROM Cliente WHERE email = ?", [email]);
         if (existingclientes.length > 0)
             return res.status(409).json({ message: "Email ya registrado" });
-        await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?)", [id, nombre, email]);
+        await connection.query("INSERT INTO Cliente (id, nombre, email) VALUES (?, ?, ?)", [id, nombre, email]);
         res.status(201).json({ message: "Cliente registrado correctamente" });
     } catch (error) {
         console.error("Error en registro:", error);
@@ -41,6 +47,7 @@ clientes.post("/client/register", async (req, res) => {
     }
 });
 
+//Delete client by ID
 clientes.delete("/client/:id", async (req, res) => {
     const { id } = req.params;
     try {
